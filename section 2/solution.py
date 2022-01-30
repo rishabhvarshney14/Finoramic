@@ -27,7 +27,7 @@ def getDependencies(data):
   
   return dependencies
 
-# Function to install a singal package
+# Function to install a single package
 # Installing of a package can failed because of build errors or OS Permission issues
 def installPackage(package, version):
   subprocess.check_call(
