@@ -79,7 +79,7 @@ def main(filename, threads=4):
     print(filename, "does not exist!")
     return
 
-  with open("dependencies.txt", encoding='utf-8', mode='r') as data:
+  with open(filename, encoding='utf-8', mode='r') as data:
     data = data.read().strip()
     dependencies = getDependencies(data)
     installDependencies(dependencies, threads=threads)
