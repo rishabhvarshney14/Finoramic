@@ -1,6 +1,7 @@
 #  build a tool to automatically download python packages. 
 import subprocess
 import sys
+import threading
 
 # Since the input given in dependencies.txt is not really a json data we have to manually iterate over the data
 # and extract all the files that are needed
@@ -29,22 +30,32 @@ def getDependencies(data):
 
 # Function to install a single package
 # Installing of a package can failed because of build errors or OS Permission issues
-def installPackage(package, version):
-  subprocess.check_call(
-    [sys.executable, "-m", "pip", "install", f"{package}=={version}", "--user"], 
-    # Comment below attributes to see pacakge installing output
-    stdout=subprocess.DEVNULL,
-    stderr=subprocess.STDOUT
-  )
+def installPackage(package, version, failed=[]):
+  # print('installing: ', package)
+  try:
+    subprocess.check_call(
+      [sys.executable, "-m", "pip", "install", f"{package}=={version}", "--user"], 
+      # Comment below attributes to see pacakge installing output
+      stdout=subprocess.DEVNULL,
+      stderr=subprocess.STDOUT
+    )
+  except:
+    failed.append(package)
 
 # function to install all the dependencies
-def installDependencies(dependencies):
+def installDependencies(dependencies, threads=4):
   failed = []
-  for package, version in dependencies.items():
-    try:
-      installPackage(package, version)
-    except:
-      failed.append(package)
+  packages = list(dependencies.keys())
+
+  for i in range(0, len(packages), threads):
+    totalRunning = []
+    for package in packages[i:i+threads]:
+      temp = threading.Thread(target=installPackage, args=(package, dependencies[package], failed,))
+      temp.start()
+      totalRunning.append(temp)
+    
+    for thread in totalRunning:
+      thread.join()
   
   if not failed:
     print("success")
@@ -55,4 +66,4 @@ def installDependencies(dependencies):
 with open("dependencies.txt", encoding = 'utf-8') as data:
   data = data.read().strip()
   dependencies = getDependencies(data)
-  installDependencies(dependencies)
+  installDependencies(dependencies, threads=4)
