@@ -2,6 +2,7 @@
 import subprocess
 import sys
 import threading
+import os
 
 # Since the input given in dependencies.txt is not really a json data we have to manually iterate over the data
 # and extract all the files that are needed
@@ -63,7 +64,17 @@ def installDependencies(dependencies, threads=4):
     print("Following packages failed to install:")
     print('\n'.join(failed))
 
-with open("dependencies.txt", encoding = 'utf-8') as data:
-  data = data.read().strip()
-  dependencies = getDependencies(data)
-  installDependencies(dependencies, threads=4)
+# Main function to read and install dependencies
+# Take two params filename (path to the dependencies file) and threads (how many multiple package should install at a time)
+def main(filename, threads=4):
+  if not os.path.exists(filename):
+    print(filename, "does not exist!")
+    return
+
+  with open("dependencies.txt", encoding='utf-8', mode='r') as data:
+    data = data.read().strip()
+    dependencies = getDependencies(data)
+    installDependencies(dependencies, threads=threads)
+
+if __name__ == "__main__":
+  main('dependencies.txt', threads=8)
