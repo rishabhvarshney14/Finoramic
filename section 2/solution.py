@@ -23,8 +23,12 @@ def getDependencies(data):
       
       for item in data[start+1:end].split(','):
         if item.strip():
-          key, value = map(lambda x: x.strip(), item.split('=='))
-          dependencies[key] = value 
+          temp = list(map(lambda x: x.strip(), item.split('==')))
+          if len(temp) == 2:
+            key, value = temp
+            dependencies[key] = value 
+          else:
+            dependencies[temp[0]] = ""
       break 
   
   return dependencies
@@ -33,9 +37,13 @@ def getDependencies(data):
 # Installing of a package can failed because of build errors or OS Permission issues
 def installPackage(package, version, failed=[]):
   # print('installing: ', package)
+  call = [sys.executable, "-m", "pip", "install", f"{package}=={version}", "--user"]
+  if not version:
+    call = [sys.executable, "-m", "pip", "install", package, "--user"]
+
   try:
     subprocess.check_call(
-      [sys.executable, "-m", "pip", "install", f"{package}=={version}", "--user"], 
+      call, 
       # Comment below attributes to see pacakge installing output
       stdout=subprocess.DEVNULL,
       stderr=subprocess.STDOUT
